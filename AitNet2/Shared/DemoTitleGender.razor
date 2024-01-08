@@ -1,0 +1,134 @@
+﻿@page "/TitleGender"
+<div class="row">
+    <div class="col">
+        <label class="control-label">Title</label>
+        <select @bind="Title" class="form-control" style="max-width:20em">
+            @if (TitleList.Count > 0)
+            {
+                @foreach (var title in TitleList)
+                {
+                    <option value="@title">@title</option>
+                }
+            }
+        </select>
+    </div>
+</div>
+
+@if (TitleMessage.Length > 0)
+{
+    <div class="alert alert-danger mt-2" role="alert" style="height:auto">
+        &nbsp;@TitleMessage.ToString()
+    </div>
+}
+
+<div class="row mt-1">
+    <div class="col">
+        <label class="control-label">Gender</label>
+        <select @bind="Gender" class="form-control" style="max-width:20em">
+            @if (GenderList.Count > 0)
+            {
+                @foreach (var gender in GenderList)
+                {
+                    <option value="@gender">@gender</option>
+                }
+            }
+        </select>
+    </div>
+</div>
+
+@if (GenderMessage.Length > 0)
+{
+    <div class="alert alert-danger mt-2" role="alert" style="height:auto">
+        &nbsp;@GenderMessage.ToString()
+    </div>
+}
+
+@code {
+    private string _title { get; set; }
+    private string Title
+    {
+        get => _title;
+        set
+        {
+            _title = value;
+            TitleMessage = string.Empty;
+            GenderMessage = string.Empty;
+
+            if (Gender == null || Gender == Globals.Select)
+            {
+                if (Title == "Mrs" || Title == "Miss" || Title == "Ms" || Title == "Baroness")
+                {
+                    Gender = Globals.Female;
+                }
+                if (Title == "Mr" || Title == "Sir")
+                {
+                    Gender = Globals.Male;
+                }
+                return;
+            }
+
+            if (Gender == Globals.Male)
+            {
+                if (Title == "Mrs" || Title == "Miss" || Title == "Ms" || Title == "Baroness")
+                {
+                    TitleMessage = "Title is inconsistent with Gender";
+                }
+            }
+            if (Gender == Globals.Female)
+            {
+                if (Title == "Mr" || Title == "Sir")
+                {
+                    TitleMessage = "Title is inconsistent with Gender";
+                }
+            }
+        }
+    }
+    private string TitleMessage = string.Empty;
+    private List<string> TitleList = new List<string>();
+
+    private string _gender { get; set; }
+    private string Gender
+    {
+        get => _gender;
+        set
+        {
+            _gender = value;
+            TitleMessage = string.Empty;
+            GenderMessage = string.Empty;
+
+            if (Gender == Globals.Male)
+            {
+                if (Title == "Mrs" || Title == "Miss" || Title == "Ms" || Title == "Baroness")
+                {
+                    GenderMessage = "Title is inconsistent with Gender";
+                }
+            }
+            if (Gender == Globals.Female)
+            {
+                if (Title == "Mr" || Title == "Sir")
+                {
+                    GenderMessage = "Title is inconsistent with Gender";
+                }
+            }
+        }
+    }
+    private string GenderMessage = string.Empty;
+    private List<string> GenderList = new List<string>();
+
+    protected override void OnInitialized()
+    {
+        TitleList.Add(Globals.Select);
+        TitleList.Add("Baroness");
+        TitleList.Add("Doctor");
+        TitleList.Add("Miss");
+        TitleList.Add("Mr");
+        TitleList.Add("Mrs");
+        TitleList.Add("Ms");
+        TitleList.Add("Sir");
+
+        GenderList.Add(Globals.Select);
+        GenderList.Add(Globals.Male);
+        GenderList.Add(Globals.Female);
+        GenderList.Add(Globals.NotKnown);
+    }
+}

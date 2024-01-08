@@ -1,0 +1,80 @@
+﻿@page "/typeandfilter"
+@using AitNet2.Models
+@using Data
+
+<div class="row">
+    <div class="col">
+        <div class="form-group mb-0">
+            <label for="searchParameter">Type three or more characters (try Ale)</label>
+            <input @bind-value="SearchParam" class="form-control" id="searchParameter" @oninput="@(e => SearchParamOnInput(e))" />
+        </div>
+        <div class="@Collapse border ml-4 dropdown-menu" id="collapseExample">
+            <table class="table table-sm table-condensed table-hover" style="background-color:cornsilk">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Gender</th>
+                        <th scope="col">Rank</th>
+                        <th scope="col">
+                            <a href="#" data-toggle="tooltip" title="Where N is the number of registrations">N</a>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var child in FilteredList)
+                        {
+                        <tr style="height:0.5em;padding:0;margin:0" @onclick="@(e => RowClick(e, @child.ChildName))">
+                            <td>@child.ChildName</td>
+                            <td>@child.Gender</td>
+                            <td>@child.Position</td>
+                            <td>@child.Registrations</td>
+                        </tr>
+                        }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@code {
+
+    private string SearchParam = string.Empty;
+
+    private string Collapse { get; set; } = "collapse"; // hide by default
+
+    [Parameter]
+    public List<BoyAndGirl> BoyAndGirlList { get; set; }
+    public List<BoyAndGirl> FilteredList = new List<BoyAndGirl>();
+
+    protected override async Task OnInitializedAsync()
+        {
+
+        }
+    private void SearchParamOnInput(ChangeEventArgs e)
+        {
+        SearchParam = e.Value.ToString();
+        if (SearchParam.Length > 2)
+            {
+            FilteredList = BoyAndGirlList.Where(x => x.ChildName.ToLower().StartsWith(SearchParam.ToLower())).ToList();
+            if (FilteredList.Count == 0)
+                {
+                Collapse = "collapse";
+                }
+            else
+                {
+                Collapse = "collapse show";
+                }
+            }
+        else
+            {
+            Collapse = "collapse";
+            FilteredList.Clear();
+            }
+        }
+    private void RowClick(MouseEventArgs e, string childName)
+        {
+        SearchParam = childName;
+        Collapse = "collapse";
+        FilteredList.Clear();
+        }
+}

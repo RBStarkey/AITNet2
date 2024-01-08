@@ -1,0 +1,91 @@
+﻿@page "/DemoListManager"
+
+<div class="row">
+
+    <div class="input-group">
+        <label class="control-label pt-2">Select:</label>
+        &nbsp;&nbsp;
+        <select @bind="SelectedItem" class="form-control">
+            @foreach (var item in DDLList)
+            {
+                <option value="@item">@item</option>
+            }
+        </select>
+    </div>
+
+</div>
+
+<div class="row mt-2 mb-2 pb-3" style="background-color:gainsboro;border-radius:5px">
+    <label class="control-label" for="NewItem">Type a new list item and click Add</label>
+    <div class="input-group">
+        <input @bind-value="NewItem" class="form-control" type="text" spellcheck="false" style="width:23em" />
+        &nbsp;
+        <button class="btn btn-sm btn-primary" style="width:5em" @onclick="NewItemSaveClick">
+            Add
+        </button>
+    </div>
+</div>
+
+@if (DDLMessage.Length > 0)
+{
+    <div class="alert alert-danger mt-2" role="alert">
+        <div class="input-group">
+        @DDLMessage.ToString()
+         </div>
+
+    </div>
+}
+
+@code {
+    //https://stackoverflow.com/questions/59137973/how-to-set-the-focus-to-an-inputtext-element
+
+    public List<string> DDLList { get; set; }
+
+    private string DDLMessage = string.Empty;
+    private string _selectedItem { get; set; }
+    private string SelectedItem
+    {
+        get => _selectedItem;
+        set
+        {
+            DDLMessage = string.Empty;
+            _selectedItem = value;
+        }
+    }
+    private string NewItem = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        DDLList = new List<string>() { "Birmingham", "Edinburgh", "London" };
+}
+
+    private void NewItemSaveClick(MouseEventArgs e)
+    {
+        DDLMessage = string.Empty;// Remove the last error message
+
+        // Has the user typed something?
+        if (string.IsNullOrEmpty(NewItem))
+        {
+              return;
+        }
+        // Is this item already in the list?
+        int index = DDLList.FindIndex(x => x.Contains(NewItem));
+        if (index == -1)
+        {
+            DDLList.Add(NewItem);
+            DDLList.Sort();
+            SelectedItem = NewItem;
+            NewItem = string.Empty;
+        }
+        else
+        {
+            DDLMessage = NewItem + " is already in the list";
+        }
+    }
+
+    private void HideDDLMessage(MouseEventArgs e)
+    {
+        DDLMessage = string.Empty;
+    }
+}
+

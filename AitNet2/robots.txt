@@ -1,0 +1,9 @@
+﻿User-agent: *
+Allow: /*.cshtml$
+Allow: /*.razor$
+Disallow: /*._Host/*
+Disallow: /*._Layout/*
+Disallow: /*.Data/*
+Disallow: /*.Services/*
+Disallow: /*.Utilities/*
+Sitemap: https://www.accessibleit.net/en-GB/sitemap.xml

@@ -1,0 +1,117 @@
+﻿@page "/DemoAddress"
+@using Data
+<div class="form-group">
+    <label class="control-label" for="PassKey">Address Pass Key</label>
+    <input @bind-value="PassKey" class="form-control"
+           type="text" spellcheck="false" />
+</div>
+<div class="form-group">
+    <label class="control-label">Address Lines 1, 2, 3</label>
+    <button class="btn btn-primary btn-sm float-right" @onclick="ShowHideAddressLookUp" title="Lookup address">
+        <span class="oi oi-magnifying-glass" aria-hidden="true"></span>
+    </button>
+</div>
+@if (AddressErrorMessage.Length > 0)
+{
+    <div class="alert alert-danger mt-2" role="alert">
+        <span class="oi oi-warning" style="font-size:1.5em;color:red" aria-hidden="true"></span>
+        <button type="button" class="close ml-auto" aria-label="Close" @onclick="HideAddressErrorMessage">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <br />
+        @AddressErrorMessage.ToString()
+
+    </div>
+}
+@if (ShowAddressLookUp)
+{
+    <div class="row p-2" style="border-radius:5px;background-color:cornsilk">
+        <label class="col-sm-7 col-form-label" for="findPostCode"
+               style="text-align:right">Type Postcode:</label>
+        <div class="col-sm-5">
+            <input id="findPostCode" type="text" class="form-control">
+        </div>
+        <div class="col-sm-12 mt-2">
+            <select class="form-control"
+                    id="addressList" name="addressList">
+            </select>
+        </div>
+
+    </div>
+    <div class="row p-2" id="GetAddressDiv">
+
+    </div>
+}
+
+<div class="form-group">
+    <input @bind="Address1" class="form-control mt-1" type="text" />
+</div>
+<div class="form-group">
+    <input @bind="Address2" class="form-control" type="text" />
+</div>
+<div class="form-group">
+    <input @bind="Address3" class="form-control" type="text" />
+</div>
+<div class="form-group">
+    <label class="control-label">Town/City</label>
+    <input @bind="TownCity" class="form-control" type="text" />
+</div>
+<div class="form-group">
+    <label class="control-label">County</label>
+    <input @bind="County" class="form-control" type="text" />
+</div>
+<div class="form-group">
+    <label class="control-label">Postcode</label>
+    <input @bind="PostCode" class="form-control" type="text" />
+</div>
+
+@code {
+    public string PassKey = string.Empty;
+
+    private string AddressErrorMessage = string.Empty;
+
+    private bool ShowAddressLookUp = false;
+    private string Address1 = string.Empty;
+    private string Address2 = string.Empty;
+    private string Address3 = string.Empty;
+    private string TownCity = string.Empty;
+    private string County = string.Empty;
+    private string PostCode = string.Empty;
+
+
+    private void ShowHideAddressLookUp()
+    {
+        AddressErrorMessage = string.Empty;
+
+        ShowAddressLookUp = !ShowAddressLookUp;
+        if (ShowAddressLookUp)
+        {
+            if (string.IsNullOrEmpty(PassKey))
+            {
+                AddressErrorMessage = "Please obtain and insert an address pass key";
+                return;
+            }
+            else
+            {
+                DataRepo repo = new DataRepo();
+
+                string key = DataRepo.GetAddressPassKey();
+                if (key == PassKey)
+                {
+                    AddressErrorMessage = "Pass key is good";
+                }
+                else
+                {
+                    AddressErrorMessage = "Pass key is not valid.  Inform the DBA";
+                    return;
+                }
+            }
+
+        }
+    }
+    private void HideAddressErrorMessage(MouseEventArgs e)
+    {
+        AddressErrorMessage = string.Empty;
+        ShowAddressLookUp = false;
+    }
+}

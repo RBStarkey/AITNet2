@@ -1,0 +1,82 @@
+﻿@page "/DemoLastNameFirstName"
+@using Models
+@using Utilities
+
+<div class="row">
+    <label asp-for="LastName" class="control-label">Type a last-name or a first name</label>
+</div>
+<div class="row mt-2 mb-2">
+    <div class="col d-flex align-items-center">
+        <input @bind="LastName" class="form-control" @onkeyup="@(e=> LastNameOnKeyUp(e))" @onfocus="@(e=> LastNameOnFocus(e))"
+               style="font-weight:700; max-width:20em" type="text" />
+        <button class="@ButtonClass btn-primary ml-2" style="width:5em" @onclick="NameChkTestOnClick">@ButtonCaption</button>
+    </div>
+</div>
+@if (ErrorMessage.Length > 0)
+    {
+    <div class="alert alert-danger mt-2" role="alert">
+        <span class="oi oi-warning" style="font-size:1.5em;color:red" aria-hidden="true"></span>
+        <button type="button" class="close ml-auto" aria-label="Close" @onclick="HideErrorMessage">
+            <span aria-hidden="true">&times;</span>
+        </button>&nbsp;@ErrorMessage.ToString()
+    </div>
+    }
+
+@code {
+    private string ButtonClass = "btn btn-primary";
+    string ButtonCaption = "Test";
+    private string LastName = string.Empty;
+    private bool AutoFormatLastNameChk = true;
+    public string ErrorMessage = string.Empty;
+
+    private void NameChkTestOnClick()
+        {
+        ErrorMessage = string.Empty;
+        ButtonClass = "btn btn-primary";
+        ButtonCaption = "Test";
+        if (string.IsNullOrEmpty(LastName))
+            {
+            ErrorMessage = "Please type a name";
+            ButtonClass = "btn btn-primary";
+            ButtonCaption = "Test";
+            return;
+            }
+
+        if (AutoFormatLastNameChk)
+            {
+            FormatName format = new FormatName();
+            NameFormatResult nameResult = format.Format(LastName.Trim().ToString());
+            if (nameResult.ErrorMessage.Length == 0)
+                {
+                LastName = nameResult.FormattedName;
+                ButtonClass = "btn btn-success";
+                ButtonCaption = "✔";
+                }
+            else
+                {
+                ErrorMessage = nameResult.ErrorMessage;
+                ButtonClass = "btn btn-danger";
+                ButtonCaption = "X";
+                }
+            }
+        }
+
+    private void LastNameOnKeyUp(KeyboardEventArgs e)
+        {
+        ButtonClass = "btn btn-primary";
+        ErrorMessage = string.Empty;
+        ButtonCaption = "Test";
+        }
+    private void LastNameOnFocus(FocusEventArgs e)
+        {
+        ButtonClass = "btn btn-primary";
+        ErrorMessage = string.Empty;
+        ButtonCaption = "Test";
+        }
+    private void HideErrorMessage()
+        {
+        ButtonClass = "btn btn-primary";
+        ButtonCaption = "Test";
+        ErrorMessage = string.Empty;
+        }
+}

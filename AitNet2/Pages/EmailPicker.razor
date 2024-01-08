@@ -1,0 +1,256 @@
+﻿@page "/emailpicker"
+@using AitNet2.Data
+@using AitNet2.Models
+@inject IJSRuntime JSRuntime
+<h3>Email Picker</h3>
+
+<div class="row w-100">
+	<div class="col-sm-4">
+		<h5>
+			The list of names represents a mailing list garnered from a customer database using some sort of selection criteria. The data is fictitious.
+		</h5>
+	</div>
+	<div class="col-sm-4">
+		<h5>
+			There are 90 names; you can filter using the <strong>Starts With</strong> and  <strong>Contains</strong> search boxes.
+			Additional information about the person is revealed when you click the drop-down button
+			to the right of their name.
+		</h5>
+	</div>
+	<div class="col-sm-4">
+		<h5>
+			Tick a name to add an email to the list.
+			You can cut and paste the list into the <i>To</i> or <i>BCC</i> field of your
+			mail application from the text-box below.
+		</h5>
+	</div>
+</div>
+<div class="row w-100">
+	<div class="col-sm-2 d-flex align-items-center">
+		<div class="input-group">
+			<div class="input-group-prepend">
+				<span class="input-group-text" id="basic-addon1">
+					<i class="fa fa-search" aria-hidden="true"></i>
+				</span>
+			</div>
+			<input type="text" class="form-control" placeholder="Starts With"
+				   aria-label="Search" aria-describedby="basic-addon1"
+				   @bind="SearchParamBegins"
+				   @oninput="SearchParamStartsWithOnInput">
+		</div>
+	</div>
+	<div class="col-sm-2 d-flex align-items-center">
+		<div class="input-group">
+			<div class="input-group-prepend">
+				<span class="input-group-text" id="basic-addon1">
+					<i class="fa fa-search" aria-hidden="true"></i>
+				</span>
+			</div>
+			<input type="text" class="form-control" placeholder="Contains"
+				   aria-label="Search" aria-describedby="basic-addon1"
+				   @bind="SearchParamContains"
+				   @oninput="SearchParamContainsOnInput">
+		</div>
+	</div>
+	<div class="col-sm-7">
+		<textarea class="w-100" value="@string.Join("; ", EmailList).ToString()"
+				  style="height:6em;background-color:azure;
+                    border-color:lightgray" readonly>
+            </textarea>
+	</div>
+	<div class="col-sm-1 d-flex align-items-center">
+		<button class="btn-primary"
+				@onclick="ClearButtonOnClick">
+			Clear
+		</button>
+	</div>
+</div>
+<div class="row w-100 border-top mt-2">
+	<div class="col-sm-4">
+		@for (int i = 0; i < Col1List.Count; i++)
+		{
+			@if (Col1List[i].IsVisible)
+			{
+				<div class="form-col">
+					@{
+						string col1Email = Col1List[i].Email.ToString();
+					}
+					<input id=@("chk1" + i.ToString()) class="form-check-input" type="checkbox" style="width:1.5em;height:1.5em;margin-top:0.3em" value=""
+				   @onchange="@(e => ChkOnChange(e,  col1Email))" />
+					&nbsp;
+					<a class="btn-link" href="#" role="button" id=@("ddm1" + @i.ToString()) data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<svg width="1.5em" height="1.5em" viewBox="0 0 16 16" class="bi bi-caret-down-square" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							<path fill-rule="evenodd" d="M3.544 6.295A.5.5 0 0 1 4 6h8a.5.5 0 0 1 .374.832l-4 4.5a.5.5 0 0 1-.748 0l-4-4.5a.5.5 0 0 1-.082-.537z" />
+							<path fill-rule="evenodd" d="M14 1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z" />
+						</svg>
+					</a>
+
+					<div class="dropdown-menu mt-4" aria-labelledby=@("ddm1" + @i.ToString())
+				 style="background-color:cornsilk">
+						<a class="dropdown-item" href="#">@Col1List[i].Email</a>
+						<a class="dropdown-item" href="#">Extension: <strong>@Col1List[i].Extension</strong></a>
+						<a class="dropdown-item" href="#">Department: <strong>@Col1List[i].Department</strong></a>
+						<a class="dropdown-item" href="#">Job Description: <strong>@Col1List[i].JobDescription</strong></a>
+					</div>
+					&nbsp;
+					<label class="label mt-1" style="font-size:1em">
+						@Col1List[i].ContactName.ToString()
+					</label>
+				</div>
+			}
+		}
+	</div>
+
+	<div class="col-sm-4">
+		@for (int i = 0; i < Col2List.Count; i++)
+		{
+			@if (Col2List[i].IsVisible)
+			{
+				<div class="form-col">
+					@{
+						string col2Email = Col2List[i].Email.ToString();
+					}
+					<input id=@("chk2" + i.ToString()) class="form-check-input" type="checkbox" style="width:1.5em;height:1.5em;margin-top:0.3em" value=""
+				   @onchange="@(e => ChkOnChange(e,  col2Email))" />
+					&nbsp;
+					<a class="btn-link" href="#" role="button" id=@("ddm2" + @i.ToString()) data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<svg width="1.5em" height="1.5em" viewBox="0 0 16 16" class="bi bi-caret-down-square" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							<path fill-rule="evenodd" d="M3.544 6.295A.5.5 0 0 1 4 6h8a.5.5 0 0 1 .374.832l-4 4.5a.5.5 0 0 1-.748 0l-4-4.5a.5.5 0 0 1-.082-.537z" />
+							<path fill-rule="evenodd" d="M14 1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z" />
+						</svg>
+					</a>
+
+					<div class="dropdown-menu mt-4" aria-labelledby=@("ddm2" + @i.ToString())
+				 style="background-color:cornsilk">
+						<a class="dropdown-item" href="#">@Col2List[i].Email</a>
+						<a class="dropdown-item" href="#">Extension: <strong>@Col2List[i].Extension</strong></a>
+						<a class="dropdown-item" href="#">Department: <strong>@Col2List[i].Department</strong></a>
+						<a class="dropdown-item" href="#">Job Description: <strong>@Col2List[i].JobDescription</strong></a>
+					</div>
+					&nbsp;
+					<label class="label mt-1" style="font-size:1em">
+						@Col2List[i].ContactName.ToString()
+					</label>
+				</div>
+			}
+		}
+	</div>
+	<div class="col-sm-4">
+		@for (int i = 0; i < Col3List.Count; i++)
+		{
+			@if (Col3List[i].IsVisible)
+			{
+				<div class="form-col">
+					@{
+						string col3Email = Col3List[i].Email.ToString();
+					}
+					<input id=@("chk3" + i.ToString()) class="form-check-input" type="checkbox" style="width:1.5em;height:1.5em;margin-top:0.3em" value=""
+				   @onchange="@(e => ChkOnChange(e,  col3Email))" />
+					&nbsp;
+					<a class="btn-link" href="#" role="button" id=@("ddm3" + @i.ToString()) data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						<svg width="1.5em" height="1.5em" viewBox="0 0 16 16" class="bi bi-caret-down-square" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							<path fill-rule="evenodd" d="M3.544 6.295A.5.5 0 0 1 4 6h8a.5.5 0 0 1 .374.832l-4 4.5a.5.5 0 0 1-.748 0l-4-4.5a.5.5 0 0 1-.082-.537z" />
+							<path fill-rule="evenodd" d="M14 1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z" />
+						</svg>
+					</a>
+
+					<div class="dropdown-menu mt-4" aria-labelledby=@("ddm3" + @i.ToString())
+				 style="background-color:cornsilk">
+						<a class="dropdown-item" href="#">@Col3List[i].Email</a>
+						<a class="dropdown-item" href="#">Extension: <strong>@Col3List[i].Extension</strong></a>
+						<a class="dropdown-item" href="#">Department: <strong>@Col3List[i].Department</strong></a>
+						<a class="dropdown-item" href="#">Job Description: <strong>@Col3List[i].JobDescription</strong></a>
+					</div>
+					&nbsp;
+					<label class="label mt-1" style="font-size:1em">
+						@Col3List[i].ContactName.ToString()
+					</label>
+				</div>
+			}
+		}
+	</div>
+</div>
+
+@code {
+
+	private List<Contact> Col1List = new List<Contact>();
+	private List<Contact> Col2List = new List<Contact>();
+	private List<Contact> Col3List = new List<Contact>();
+	private List<Contact> Col4List = new List<Contact>();
+	private DataRepo Repo = new DataRepo();
+	private List<string> EmailList = new List<string>();
+	private string SearchParamBegins = string.Empty;
+	private string SearchParamContains = string.Empty;
+
+	protected override void OnInitialized()
+	{
+		Repo.LoadContactList();
+		Col1List.AddRange(Repo.ContactList.GetRange(0, 30));
+		Col2List.AddRange(Repo.ContactList.GetRange(30, 30));
+		Col3List.AddRange(Repo.ContactList.GetRange(60, 30));
+	}
+
+	private void ChkOnChange(ChangeEventArgs e, string eMail)
+	{
+		if ((bool)e.Value)
+		{
+			// Is this email already in the list?
+			string email = EmailList.FirstOrDefault(x => x == eMail);
+			if (email == null)
+			{
+				EmailList.Add(eMail);
+			}
+		}
+		else
+		{
+			EmailList.Remove(eMail);
+		}
+	}
+
+	private void SearchParamStartsWithOnInput(ChangeEventArgs e)
+	{
+		string searchTerm = e.Value.ToString();
+		foreach (Contact contact in Repo.ContactList)
+		{
+			if (contact.ContactName.ToLower().StartsWith(searchTerm.ToLower()))
+			{
+				contact.IsVisible = true;
+			}
+			else
+			{
+				contact.IsVisible = false;
+			}
+		}
+		SearchParamContains = string.Empty;
+	}
+
+	private void SearchParamContainsOnInput(ChangeEventArgs e)
+	{
+		string searchTerm = e.Value.ToString();
+		foreach (Contact contact in Repo.ContactList)
+		{
+			if (contact.ContactName.ToLower().Contains(searchTerm.ToLower()))
+			{
+				contact.IsVisible = true;
+			}
+			else
+			{
+				contact.IsVisible = false;
+			}
+		}
+		SearchParamBegins = string.Empty;
+	}
+
+	private async Task ClearButtonOnClick(MouseEventArgs e)
+	{
+		EmailList.Clear();
+		foreach (Contact contact in Repo.ContactList)
+		{
+			contact.IsVisible = true;
+		}
+		await JSRuntime.InvokeVoidAsync("SetCheckboxesToFalse");
+		SearchParamBegins = string.Empty;
+		SearchParamContains = string.Empty;
+	}
+}
+

@@ -1,0 +1,95 @@
+﻿@page "/bingmaps"
+@inject IJSRuntime jsRuntime
+@using AitNet2.Models
+
+<div class="row mb-2">
+    <div class="col-sm-10">
+        <h3>Bing Maps - Click to identify a location</h3>
+        <br/>
+        <h4>
+            Each click will place a pin on the map with the confidence of the address look-up on the last line, see
+            <a href="https://docs.microsoft.com/en-us/bingmaps/rest-services/locations/location-data">here</a> for more information.
+        </h4>
+    </div>
+    <div class="col-sm-2">
+        <button class=" btn-primary" @onclick="RemovePinsClick">Remove Pins</button>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-4">
+        <div class="col w-100 mb-2 d-flex justify-content-center border-top pt-2">
+            <h4>Data Sent to the Server</h4>
+        </div>
+
+        <ol id="hitListOL" style="white-space:pre-wrap; overflow:auto;height:360px">
+            @foreach (var item in listItems)
+            {
+                <li>@item</li>
+            }
+        </ol>
+    </div>
+    <div id="myMap" class="col-sm-8" style="height:410px">
+    </div>
+</div>
+
+ <h3>Notes</h3>
+<div class="row mt-4 mb-5">
+    <div class="col-sm-4 border-end 1">
+        <h4>The accuracy of the look up is affected by the scale of the map and the pixel width of the display.</h4>
+    </div>
+    <div class="col-sm-4 border-end 1">
+        <h4>
+               The location data sent to the Server would usually be saved in a CosmosDB or SQL Server database together 
+               with additional data such as a report and a recommendation.
+        </h4>
+    </div>
+    <div class="col-sm-4">
+                <h4>The details of the location are being sent back to the server and then sent to the browser using Signal-R and JSInterop.</h4>
+    </div>
+</div>
+
+
+@code {
+    private static Action? action;
+    private static List<string> listItems = new List<string>();
+    private static string NewPinData = string.Empty;
+    protected override void OnInitialized()
+    {
+        action = UpdateUI;
+    }
+    private void AddItemClick()
+    {
+        NewPinData = DateTime.Now.Millisecond.ToString();
+        listItems.Add(NewPinData);
+    }
+    private void UpdateUI()
+    {
+        StateHasChanged(); // To show updated list control
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+
+        }
+        await jsRuntime.InvokeVoidAsync("GetMap");
+    }
+
+    private async Task RemovePinsClick()
+    {
+        await jsRuntime.InvokeVoidAsync("RemovePins");
+    }
+
+    [JSInvokable]
+    public static void InvokeFromJS(string address)
+    {
+        NewPinData = address;
+        listItems.Add(NewPinData);
+        if (action != null)
+        {
+            action.Invoke();// To show updated list control
+        }
+
+    }
+    }

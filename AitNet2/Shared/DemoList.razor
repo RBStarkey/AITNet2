@@ -1,0 +1,563 @@
+﻿@page "/demoList"
+@using Models
+@using Data
+@using System
+
+@inject NavigationManager NavMan
+@inject Services.PersonService PService
+    <h3>Database</h3>
+    <div class="row p-3">
+        <div class="col-sm-12">
+            <h5>
+                This page demonstrates the ability to find someone quickly in @Repo.PersonList.Count.ToString() records.
+                The Help button provides more information about the data
+            </h5>
+        </div>
+        <div class="col-sm-12">
+            <h5>
+                At the end of the page there are some notes about the advantages of fast look up.<a class="btn btn-sm btn-outline-info ml-2" href="javascript: document.body.scrollIntoView(false);"><i class="fas fa-arrow-down"></i></a>
+            </h5>
+        </div>
+        <div class="col-sm-12">
+            <h5>
+                Although the buttons imply that you will be changing and saving a record, the changes only last until you close the page.  In a real system these changes would be stored in a web database.
+            </h5>
+        </div>
+    </div>
+    <div class="form-inline mb-2">
+        <label class="control-label mr-2">Search Type</label>
+        <select class="form-control mr-2" style="max-width:16em"
+                @onchange="SearchTypeOnChange">
+            @if (SearchTypeList.Count > 0)
+                {
+                @foreach (var type in SearchTypeList)
+                    {
+                    <option value="@type">@type</option>
+                    }
+                }
+        </select>
+
+        @if (ShowSearchParam)
+            {
+            <input @oninput="SearchParamOnInput" value="@SearchParameter" class="form-control mr-2" type="text" style="max-width:8em" />
+            }
+        else
+            {
+            <label class="control-label mr-2">Date-From</label>
+            <input class="form-control mr-2" type="date" @bind="DateFrom" />
+            <label class="control-label mr-2">Date-To</label>
+            <input class="form-control mr-2" type="date" @bind="DateTo" />
+            <button type="button" class="btn btn-primary" @onclick="DateFilterClick">
+                Filter
+            </button>
+            }
+        <button type="button" class="fas fa-question-circle"
+                @onclick="ShowHelpSearchParamClick"
+                style="font-size:1em;border:none;color:#0000EE;
+                            background-color:transparent;cursor:pointer">
+        </button>
+    </div>
+
+    @if (SearchParamError.Length > 0)
+        {
+        <div class="alert alert-danger alert-dismissible mt-2" role="alert" style="height:auto;color:black;font-weight:700;">
+            <span class="oi oi-warning" style="font-size:1.5em;color:red" aria-hidden="true"></span>
+            &nbsp;@SearchParamError.ToString()
+        </div>
+
+        }
+    @if (ShowEditForm)
+        {
+        <div class="row mt-2 mb-2">
+            <div class="col-sm-3">
+                <div class="card" style="background-color:@(SelectedPerson.Id == Guid.Empty?"cornsilk":"azure")">
+                    <div class="card-body">
+                        <h4 class="card-title w-100" style="text-align:center">
+                            @(SelectedPerson.Id == Guid.Empty ? "New Record" : "Edit")
+                        </h4>
+                        <EditForm Model="@SelectedPerson" OnValidSubmit="HandleValidSubmit">
+                            <DataAnnotationsValidator />
+                            <label class="control-label mt-2">Title</label>
+                            <InputSelect class="form-control" @bind-Value="SelectedPerson.Title">
+                                <option value="">Select...</option>
+                                <option value="Mr.">Mr.</option>
+                                <option value="Mrs.">Mrs.</option>
+                                <option value="Ms.">Ms.</option>
+                                <option value="NotStated">Not Stated</option>
+                            </InputSelect>
+                            <ValidationMessage For="@(() => SelectedPerson.Title)" />
+
+                            <label class="control-label mt-2">Last Name</label>
+                            <InputText id="LastName" class="form-control" @bind-Value="SelectedPerson.LastName" />
+                            <ValidationMessage For="@(() => SelectedPerson.LastName)" />
+
+                            <label class="control-label mt-2">Middle Name</label>
+                            <InputText id="MiddleName" class="form-control" @bind-Value="SelectedPerson.MiddleName" />
+
+                            <label class="control-label mt-2">First Name</label>
+                            <InputText id="FirstName" class="form-control" @bind-Value="SelectedPerson.FirstName" />
+                            <ValidationMessage For="@(() => SelectedPerson.FirstName)" />
+
+                            <label class="control-label mt-2">Company Name</label>
+                            <InputText id="CompanyName" class="form-control" @bind-Value="SelectedPerson.CompanyName" />
+                            <ValidationMessage For="@(() => SelectedPerson.CompanyName)" />
+
+                            <label class="control-label mt-2">Phone</label>
+                            <InputText id="Phone" class="form-control" @bind-Value="SelectedPerson.Phone" />
+                            <ValidationMessage For="@(() => SelectedPerson.Phone)" />
+
+                            <label class="control-label mt-2">Email Address</label>
+                            <InputText id="EmailAddress" class="form-control" @bind-Value="SelectedPerson.EmailAddress" />
+                            <ValidationMessage For="@(() => SelectedPerson.EmailAddress)" />
+
+                            <label class="control-label mt-2">Modified Date</label>
+                            <label class="form-control" readonly>@SelectedPerson.ModifiedDate.ToString("HH:mm ddd dd MMM yyyy")</label>
+                            <label class="control-label mt-2">ID</label>
+                            <label class="form-control" style="height:auto" readonly>@SelectedPerson.Id.ToString()</label>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary mr-auto">Save</button>
+                                <button type="button" class="btn btn-secondary"
+                                        @onclick="HideEditModalClick">
+                                    Cancel
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        }
+    <table class="table table-striped table-responsive">
+        <thead class="thead-dark">
+            <tr>
+                <th style="text-align:left" scope="col">
+                    <button class="btn btn-success" type="button"
+                            id="newButton" style="width:5em" @onclick="NewPersonClick">
+                        New
+                    </button>
+                </th>
+                <th style="text-align:center" scope="col">ID</th>
+                <th style="text-align:center" scope="col">Title</th>
+                <th style="text-align:center" scope="col">Last Name</th>
+                <th style="text-align:center" scope="col">First Name</th>
+                <th style="text-align:center" scope="col">Phone</th>
+                <th style="text-align:center" scope="col">Email</th>
+                <th style="text-align:center" scope="col">Date Modified</th>
+                <th style="text-align:center">Rows:&nbsp;@FilteredList.Count.ToString()</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Person person in FilteredList)
+                {
+                <tr>
+                    <td>
+                        <button class="btn btn-primary" type="button" @onclick="() => EditClick(person.Id.ToString())"
+                                style="width:5em">
+                            Edit
+                        </button>
+                    </td>
+                    <td style="width:12em">@person.Id.ToString()</td>
+                    <td>@person.Title</td>
+                    <td>@person.LastName</td>
+                    <td>@person.FirstName</td>
+                    <td><a href="tel:@person.Phone">@person.Phone</a></td>
+                    <td><a href="mailto:@person.EmailAddress.ToString()">@person.EmailAddress</a></td>
+                    <td style="text-align:center">@person.ModifiedDate.ToString("dd MMM yyyy")</td>
+                    <td style="text-align:center">
+                        <button class="btn btn-danger" type="button" @onclick="() => DeleteClick(person.Id.ToString())"
+                                style="width:5em">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+                }
+
+        </tbody>
+    </table>
+
+    @if (ShowHelpModal)
+        {
+        <div class="modal" tabindex="-1" style="display:block;" role="dialog">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color:Navy;color:white">
+                        <h3 class="modal-title">
+                            Help
+                        </h3>
+                    </div>
+                    <div class="modal-body">
+                        <h4>Records</h4>
+                        <p>
+                            There are 847 fictitious records in the data set, these were taken from the Customers table of Microsoft's Adventureworks LT2017 database.
+                        </p>
+                        <h4>Searching - Names, ID etc.etc</h4>
+                        <p>
+                            You can search for any of the values in the drop down list.  The functionality demonstrates filtering as you type.
+                            Filtering using the first three or four characters of the ID finds the record quickly and without distracting rows.
+                        </p>
+                        <h4>Searching - Dates</h4>
+                        <p>
+                            The date-search allows to you search over a range of dates or, if you insert the same date in Date-From and Date-To it will return records just for that day.
+                            The date-range for the demo data runs from 12 Jan 2018 to 5 May 2020.
+                        </p>
+                        <h4>Searching - Email Address</h4>
+                        <p>
+                            The ability to search for an email address is helpful if you send out group emails and you get 'bouncers' from incorrect email addresses.
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary"
+                                @onclick="HideHelpModalClick">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
+    @if (ShowErrorModal)
+        {
+        <div class="modal" tabindex="-1" style="display:block;" role="dialog">
+            <div class="modal-dialog small">
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color:firebrick;color:white">
+                        <h3 class="modal-title">
+                            Error
+                        </h3>
+                    </div>
+                    <p>
+                        @ErrorMessage.ToString()
+                    </p>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary"
+                                @onclick="HideHelpModalClick">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
+    @if (ShowDeleteModal)
+        {
+        <div class="modal" tabindex="-1" style="display:block;" role="dialog">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color:red;color:white">
+                        <h3 class="modal-title">
+                            Delete
+                        </h3>
+                    </div>
+                    <div class="modal-body">
+                        <h4>Do you want to permanently delete the record for...</h4> <br />
+                        <div class="form-row">
+                            <h4>@SelectedPerson.FirstName&nbsp;@SelectedPerson.LastName?</h4>
+                            <button type="button" class="btn btn-danger ml-2"
+                                    @onclick="() => DeleteSelectedPerson(SelectedPerson.Id.ToString())">
+                                Yes
+                            </button>
+                        </div>
+                        <br />
+                        <div class="form-row">
+                            <h5>ID:&nbsp;@SelectedPerson.Id</h5>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary"
+                                @onclick="HideDeleteModalClick">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
+
+    <div class="row">
+        <div class="row w-100 pl-3 mb-3 d-flex justify-content-center"
+             style="background-color:aqua;color:black;border-radius:10px">
+            <h3>Benefits</h3>
+        </div>
+        <div class="card-deck">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Intuitive Design</h4>
+                    <h5 class="card-text">
+                        Our experience shows that staff take to this sort of search and
+                        find functionality like a duck to water.
+                    </h5>
+                    <h5 class="card-text">
+                        Strangely enough, being able to find someone using the first
+                        three or four digits of their ID turns out to be the preferred method of searching.
+                    </h5>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Reduced Training</h4>
+                    <h5 class="card-text">
+                        Training is the oil of efficiency and should always accompany the
+                        introduction of this type of system.  Covid-19 has shown that
+                        remote-working is a pragmatic option for a digital society.
+                    </h5>
+                    <h5 class="card-text">
+                        As long as the system uses a consistent design and does not crowd the
+                        forms with buttons galore, training takes less time.
+                    </h5>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Accuracy and Immediate Communication</h4>
+                    <h5 class="card-text">
+                        Being able to correct or bring up to date a person's record at the
+                        touch of a button means that staff will take the time to keep things in step with reality.
+                    </h5>
+                    <h5 class="card-text">
+                        Making a telephone call by simply clicking a number or sending an
+                        email by clicking an email address enhances a company's reputation for responsiveness.
+                        It is possible to send bulk emails; if you send less than 25,000 a month these cost nothing.
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mt-4">
+        <a class="btn btn-sm btn-info" href="javascript: document.body.scrollIntoView(true);">Top</a>
+    </div>
+    @code {
+        private bool ShowSearchParam = true;
+        private bool ShowErrorModal = false;
+        private string ErrorMessage = string.Empty;
+        private bool ShowHelpModal = false;
+        private bool ShowDeleteModal = false;
+        private bool ShowEditForm = false;
+
+        DateTime? DateFrom = null;
+        DateTime? DateTo = null;
+
+        private List<string> SearchTypeList = Globals.GetSearchTypeList();
+
+        private DataRepo Repo = new DataRepo();
+        private List<Person> FilteredList = new List<Person>();
+
+        // Start off showing a search for Last Name Begins - van
+        private string SearchType = Globals.LastNameStarts;
+        private string SearchParameter = "van";
+
+        private string SearchParamError = string.Empty;
+        private Person SelectedPerson { get; set; }
+        private EditContext editContext;
+
+        protected override void OnInitialized()
+            {
+            Repo.LoadList();
+            FilteredList = Repo.PersonList.FindAll(x => x.LastName.ToLower().StartsWith(SearchParameter)).ToList();
+            SelectedPerson = new Person();
+            editContext = new EditContext(SelectedPerson);
+            }
+
+        private void SearchTypeOnChange(ChangeEventArgs e)
+            {
+            SearchType = e.Value.ToString();
+            SearchParamError = string.Empty;
+            if (SearchType == Globals.DateModifiedFilter)
+                {
+                ShowSearchParam = false;
+                return;
+                }
+            else
+                {
+                ShowSearchParam = true;
+                }
+            if (!string.IsNullOrEmpty(SearchParameter))
+                {
+                DoSearch(SearchType, SearchParameter);
+                }
+            }
+        private void DateFilterClick(MouseEventArgs e)
+            {
+            SearchParamError = string.Empty;
+
+            if (!DateFrom.HasValue)
+                {
+                SearchParamError = "Please insert a Date-From";
+                return;
+                }
+            if (!DateTo.HasValue)
+                {
+                SearchParamError = "Please insert a Date-To";
+                return;
+                }
+            if (DateFrom.Value > DateTo.Value)
+                {
+                SearchParamError = "Date-From must be earlier or the same as Date-To";
+                return;
+                }
+            // Set to last minute of the day
+            DateTo = DateTo.Value.AddHours(23).AddMinutes(59);
+
+            FilteredList.Clear();
+            FilteredList = Repo.PersonList.Where(x => x.ModifiedDate >= DateFrom && x.ModifiedDate <= DateTo).ToList();
+            }
+        private void ShowHelpSearchParamClick()
+            {
+            ShowHelpModal = true;
+            }
+        private void HideHelpModalClick()
+            {
+            ShowHelpModal = false;
+            }
+        private void SearchParamOnInput(ChangeEventArgs e)
+            {
+            if (string.IsNullOrEmpty(e.Value.ToString()))
+                {
+                SearchParameter = string.Empty;
+                FilteredList.Clear();
+                return;
+                }
+
+            if (Globals.StringCharsOK(e.Value.ToString()))
+                {
+                SearchParamError = string.Empty;
+                SearchParameter = e.Value.ToString();
+                DoSearch(SearchType, SearchParameter);
+
+                return;
+                }
+            else
+                {
+                FilteredList.Clear();
+                SearchParamError = "Search parameter can only have letters in the range A-Z, a-z, digits in the range 0-9, spaces or a dash('-') It cannot be more than 20 characters long.";
+                return;
+                }
+            }
+        private void NewPersonClick(MouseEventArgs e)
+            {
+            SelectedPerson = new Person();
+            SelectedPerson.Id = Guid.Empty;
+            SelectedPerson.ModifiedDate = Globals.GetUKDateTime();
+            ShowEditForm = true;
+            }
+
+
+        private void EditClick(string id)
+            {
+            // Find the id Guid
+            SelectedPerson = Repo.PersonList.Find(p => p.Id.ToString() == id);
+            if (SelectedPerson == null)
+                {
+
+                }
+            ShowEditForm = true;
+            // https://wellsb.com/csharp/aspnet/blazor-singleton-pass-data-between-pages/
+            // https://www.koskila.net/how-to-use-urihelper-or-navigationmanager-in-net-core-3-0-blazor/
+            //NavMan.NavigateTo("/EditCustomer/" + person.Id.ToString());
+
+            }
+        private void HideEditModalClick()
+            {
+            ShowEditForm = false;
+            }
+        private void DeleteClick(string id)
+            {
+            Person person = Repo.PersonList.Find(p => p.Id.ToString() == id);
+            if (person == null)
+                {
+
+                }
+            SelectedPerson = person;
+
+            ShowDeleteModal = true;
+            }
+        private void DeleteSelectedPerson(string id)
+            {
+            Person person = Repo.PersonList.SingleOrDefault(r => r.Id.ToString() == id);
+            if (person == null)
+                {
+                ErrorMessage = "Delete Selected Person: Can't find ID: " + id;
+                ShowErrorModal = true;
+                return;
+                }
+            else
+                {
+                FilteredList.Remove(person);
+                }
+            ShowDeleteModal = false;
+            }
+        private void HideDeleteModalClick()
+            {
+            ShowDeleteModal = false;
+            }
+
+        private async Task HandleValidSubmit()
+            {
+            SelectedPerson.ModifiedDate = Globals.GetUKDateTime();
+
+            if (SelectedPerson.Id == Guid.Empty)
+                {
+                // This is a new record
+                SelectedPerson.Id = Guid.NewGuid();
+                // Prevent malign attacks
+                if (Repo.PersonList.Count < 900) // 847 in the json file
+                    {
+                    Repo.PersonList.Insert(0, SelectedPerson);
+                    }
+
+                }
+            ShowEditForm = false;
+            //var isValid = editContext.Validate() &&
+            //    await ServerValidate(editContext);
+
+            //if (isValid)
+            //{
+
+            //}
+            //else
+            //{
+
+            //}
+            }
+
+        //private async Task<bool> ServerValidate(EditContext editContext)
+        //{
+        //    var serverChecksValid = true;
+
+        //    return serverChecksValid;
+        //}
+
+        private void DoSearch(string searchType, string searchParameter)
+            {
+            FilteredList.Clear();
+            if (searchParameter.Length == 0)
+                {
+                return;
+                }
+            switch (searchType)
+                {
+                case Globals.LastNameStarts:
+                    FilteredList = Repo.PersonList.Where(x => x.LastName.ToLower().StartsWith(searchParameter.ToLower())).ToList();
+                    break;
+                case Globals.LastNameContains:
+                    FilteredList = Repo.PersonList.Where(x => x.LastName.ToLower().Contains(searchParameter.ToLower())).ToList();
+                    break;
+                case Globals.FirstNameStarts:
+                    FilteredList = Repo.PersonList.Where(x => x.FirstName.ToLower().StartsWith(searchParameter.ToLower())).ToList();
+                    break;
+                case Globals.FirstNameContains:
+                    FilteredList = Repo.PersonList.Where(x => x.FirstName.ToLower().Contains(searchParameter.ToLower())).ToList();
+                    break;
+                case Globals.IDBegins:
+                    FilteredList = Repo.PersonList.Where(x => x.Id.ToString().StartsWith(searchParameter)).ToList();
+                    break;
+                case Globals.EmailAddressStarts:
+                    FilteredList = Repo.PersonList.Where(x => x.EmailAddress.ToLower().StartsWith(searchParameter.ToLower())).ToList();
+                    break;
+                case Globals.PhoneContains:
+                    FilteredList = Repo.PersonList.Where(x => x.Phone.ToLower().Contains(searchParameter.ToLower())).ToList();
+                    break;
+                }
+
+            }
+    }

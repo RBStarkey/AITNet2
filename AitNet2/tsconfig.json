@@ -1,0 +1,20 @@
+{
+	//"https://www.typescriptlang.org/tsconfig/
+	"compileOnSave": true,
+	"compilerOptions": {
+		//"alwaysStrict": true,
+		//"strictNullChecks": true,
+		//"noImplicitAny": false,
+		"noEmitOnError": false,
+		"removeComments": false,
+		"sourceMap": true,
+		"target": "es5",
+		"outDir": "./wwwroot/js",
+		"moduleResolution": "node" //https://www.typescriptlang.org/docs/handbook/module-resolution.html
+	},
+	"include": [
+		"./**/*.ts",
+		"./**/*.tsx",
+		"./types/**/*.d.ts"
+	]
+}

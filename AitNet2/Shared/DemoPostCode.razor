@@ -1,0 +1,146 @@
+﻿@page "/DemoPostCode"
+@using AitNet2.Models
+@using Newtonsoft.Json
+
+<div class="row w-100">
+    <div class="col w-50">
+        <div class="row">
+            <label asp-for="LastName" class="control-label">Type a postcode</label>
+        </div>
+        <div class="row mt-2 mb-2">
+            <div class="col d-flex align-items-center">
+                <input @bind="PostCode" class="form-control" @onkeyup="@(e=> PostCodeOnKeyUp(e))" @onfocus="@(e=> PostCodeOnFocus(e))"
+                       style="font-weight:700; max-width:20em" type="text" />
+                <button class="@ButtonClass btn-primary ml-2" style="width:5em" @onclick="PostCodeOnClick">@ButtonCaption</button>
+            </div>
+        </div>
+        @if (ErrorMessage.Length > 0)
+            {
+            <div class="alert alert-danger mt-2" role="alert">
+                <span class="oi oi-warning" style="font-size:1.5em;color:red" aria-hidden="true"></span>
+                <button type="button" class="close ml-auto" aria-label="Close" @onclick="HideErrorMessage">
+                    <span aria-hidden="true">&times;</span>
+                </button>&nbsp;@ErrorMessage.ToString()
+            </div>
+            }
+
+        <h5>
+            The data is provided by <a href="https:https://postcodes.io/"> postscodes.io</a> as a free service.
+        </h5>
+        <h5>If no data appears, it might be that your postcode is not included in the service - see <i>Documentation</i> on the web site.</h5>
+
+        <h5>
+            To get a list of postal addresses so that a user can pick the correct one you will need to pay a
+            fee to a service provider. Be cautious about the format and content of the data as it may
+            require some pre-processing before being displayed.
+        </h5>
+        <h5>
+            Try these postcodes...<br/>
+             W1J 7NT,  DE12 8HJ, HD7 5UZ,<br/> CH5 3QW, W2 1JB, JE3 1EP, <br/>CV1 4BA
+        </h5>
+
+    </div>
+    <div class="col w-50 border-left">
+        @if (PostCodeInfo.ResultList != null)
+            {
+            @foreach (var item in PostCodeInfo.ResultList)
+                {
+                <h5>@item.Caption.ToString(): @item.Data.ToString()</h5>
+                }
+            }
+    </div>
+</div>
+@code {
+    // W1J 7NT,  DE12 8HJ, HD7 5UZ, CH5 3QW, W2 1JB, JE3 1EP, CV1 4BA
+    private string ErrorMessage = string.Empty;
+    private string PostCode = string.Empty;
+    private PostcodeResult PostCodeInfo = new PostcodeResult();
+    private string ButtonCaption = "Test";
+    private string ButtonClass = "btn btn-primary";
+    private readonly string TickMark = "✔";
+    private readonly string CrossMark = "✘";
+
+    protected override void OnInitialized()
+        {
+        PostCodeInfo.ResultList = new List<LineItem>();
+        }
+
+    private async Task PostCodeOnClick(MouseEventArgs e)
+        {
+        try
+            {
+            PostCode = PostCode.Trim();
+            if (string.IsNullOrEmpty(PostCode))
+                {
+                ButtonCaption = CrossMark;
+                ButtonClass = "btn btn-danger";
+                ErrorMessage = "Please type a postcode";
+                return;
+                }
+            PostCode = PostCode.ToUpper();
+            bool isOK = Globals.PostCodeIsOK(PostCode);
+            if (isOK)
+                {
+                var settings = new JsonSerializerSettings
+                    {
+                    NullValueHandling = NullValueHandling.Ignore,
+                    MissingMemberHandling = MissingMemberHandling.Ignore
+                    };
+
+                RawResult<PostcodeResult> rawResult = new RawResult<PostcodeResult>();
+                using (HttpClient client = new HttpClient())
+                    {
+                    string url = "https://api.postcodes.io/postcodes/" + PostCode;
+                    string data = await client.GetStringAsync(url);
+                    rawResult = JsonConvert.DeserializeObject<RawResult<PostcodeResult>>(data, settings);
+                    if (rawResult.Status != 200)
+                        {
+                        ButtonCaption = CrossMark;
+                        ButtonClass = "btn btn-danger";
+                        ErrorMessage = "Deserialise failed, status code: " + rawResult.Status.ToString();
+                        }
+                    }
+                if (!string.IsNullOrEmpty(ErrorMessage))
+                    {
+                    return;
+                    }
+                PostCodeInfo = rawResult.Result;
+                PostCodeInfo.LoadResults();
+                }
+            else
+                {
+                ButtonCaption = CrossMark;
+                ButtonClass = "btn btn-danger";
+                ErrorMessage = "Postcode not well formed";
+                }
+            }
+        catch (HttpRequestException ex)
+            {
+            ButtonCaption = CrossMark;
+            ButtonClass = "btn btn-danger";
+            ErrorMessage = "That postcode does not appear in the system";
+            }
+        catch (Exception ex)
+            {
+            ButtonCaption = CrossMark;
+            ButtonClass = "btn btn-danger";
+            ErrorMessage = "PostCodeOnClick - Exception: " + ex.Message;
+            }
+        return;
+        }
+    private void HideErrorMessage()
+        {
+        ButtonCaption = "Test";
+        ButtonClass = "btn btn-primary";
+        ErrorMessage = string.Empty;
+        }
+    private void PostCodeOnKeyUp(KeyboardEventArgs e)
+        {
+        HideErrorMessage();
+        }
+
+    private void PostCodeOnFocus(FocusEventArgs e)
+        {
+        HideErrorMessage();
+        }
+}

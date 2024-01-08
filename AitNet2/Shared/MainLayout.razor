@@ -1,0 +1,25 @@
+﻿@inherits LayoutComponentBase
+
+<PageTitle>AitNet2</PageTitle>
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4" style="background-color:firebrick;color:white">
+            <div class="col d-flex justify-content-center pt-2">
+                <h3>ACCESSible IT Limited</h3>
+            </div>
+        </div>
+        <article class="content px-4">
+            @Body
+        </article>
+        <div class="row w-100">
+            <div class="col d-flex justify-content-center pt-2">
+            &copy; ACCESSible IT Limited @DateTime.Now.Year.ToString().  All rights reserved.
+            </div>
+        </div>
+    </main>
+</div>

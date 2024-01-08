@@ -1,0 +1,60 @@
+﻿@page "/products"
+
+    <div class="row mb-2">
+        <h3>Products</h3>
+        <div class="col-sm-10">
+            <h4>
+                Carers Web DB
+            </h4>
+            <h5>
+                Carers Web DB is an Azure CosmosDB database secured by Azure Active Directory.
+                It uses SignalR to provide a fast responses to 18,000 carer records, 22,000 cared-for records
+                and 90,000+ contact records.
+                It supports a Midlands based Caring Agency in its daily contacts with carers and cared-fors.
+                It has functionality to quickly send 4,500 emails at a time using Twillio-SenfGrid.
+                Other functionality allows placing carers into ad-hock groups, creating mail-merge, email and contact lists.
+                Sophisticated reporting is provided by <a href="https://powerbi.microsoft.com/en-us/">
+                    Power BI
+                </a> (which is free).
+            </h5>
+            <h5 class=" mt-3 mb-3">The graphic below shows the find-form that allows users to look-up a carer or a cared-for.</h5>
+            <h5>
+                The find box allows the user to type in any relevant characters.
+                The two drop-down lists after the Find button allow the user to search
+                for a name that contains or begins with whatever is typed in.  The search can be constrained to current or archived carers.
+                Other modes search on postcode, telephone number, email address or partial ID numbers.
+                Oddly enough, the last category proves to be the most popular and the quickest.
+            </h5>
+            <br />
+            <h5>
+                The blue button, on the lower-left, displays a list of options which allow the user to display the carer's
+                record or other documents held in the system.
+                The red warning triangles provide early notice that there are client-cautions about the way a person
+                must be contacted and any behavioural concerns raised by staff.
+            </h5>
+            <h5>
+                Clicking on the telephone numbers will dial the number and, when the email address is clicked,
+                Outlook opens showing an email addressed to the carer.
+            </h5>
+            <img class="shadow p-3 mb-5 bg-white rounded" src="Graphics/CarersWebSearchClipPNG.PNG" height="180" width="1100" />
+            <br />
+            <h4>Rainbow Diary</h4>
+            <h5>
+                This is a Microsoft Access database which allows users to create appointments, rosters, room bookings, holiday or sickness-absence records.
+                Appointments can be dragged and dropped as well as stretched.  Costs and notes can be assigned.
+            </h5>
+            <h5>
+                The data is stored in a (free) SQL Server Express database. The system prevents double booking. 
+                This is not a web database system although with the announcement of the 
+                <a href="https://powerapps.microsoft.com/en-us/blog/announcing-power-apps-microsoft-access-security-mobility-new-experiences/">
+                    Microsoft Access Connector for the Power Platform
+                </a> on 2 November 2021, it might just make it to the web after all!
+            </h5>
+            <img class="shadow p-3 mb-5 bg-white rounded" src="Graphics/diary31days40pc.jpg" height="500" width="700" />
+        </div>
+    </div>
+
+
+        @code {
+
+    }

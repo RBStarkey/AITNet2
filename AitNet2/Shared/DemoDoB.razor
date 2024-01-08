@@ -1,0 +1,134 @@
+﻿@page "/DemoDoB"
+@using System.Text.RegularExpressions
+
+<h5>Type a date in this format DD Mmm YYYY to see Age and Date of Birth</h5>
+<div class="input-group mb-3">
+    <div class="input-group-append">
+        <span class="input-group-text" id="addonAge" style="width:3em">@strAge</span>
+    </div>
+    <input @bind-value="DoB" type="text" class="form-control" @onkeyup="@(e=> DobOnKeyUp(e))" @onfocus="@(e=> DobOnFocus(e))"
+           aria-label="Username" aria-describedby="addonAge" style="font-weight:700"
+           spellcheck="false">
+    <button class="@ButtonClass btn-sm ml-2" @onclick="DobTestOnClick" style="width:5em">@ButtonCaption</button>
+</div>
+@if (ErrorMessage.Length > 0)
+    {
+    <div class="alert alert-danger mt-2" role="alert">
+        <span class="oi oi-warning" style="font-size:1.5em;color:red" aria-hidden="true"></span>
+        <h5>@ErrorMessage.ToString()</h5>
+        <button type="button" class="close ml-auto" aria-label="Close" @onclick="HideErrorMessage">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    }
+
+@code {
+    private string DoB { get; set; }
+    private string ErrorMessage = string.Empty;
+    private string strAge = Globals.AgeZero;
+    private string ButtonCaption = "Test";
+    private string ButtonClass = "btn btn-primary";
+    private readonly string TickMark = "✔";
+    private readonly string CrossMark = "✘";
+
+    protected override void OnInitialized()
+        {
+        // Set 18 years to the day
+        DateTime DateOfBirth = DateTime.UtcNow.AddYears(-18).Date;// Globals.GetUKDateTime().AddYears(-18).AddDays(-1).Date;
+
+        int ageNow = Globals.AgeInYears(DateOfBirth);
+        strAge = ageNow.ToString();
+        DoB = DateOfBirth.ToString("d MMM yyyy");
+        }
+
+    private void HideErrorMessage()
+        {
+        ButtonClass = "btn btn-primary";
+        ButtonCaption = "Test";
+        ErrorMessage = string.Empty;
+        }
+
+    private void DobTestOnClick(MouseEventArgs e)
+        {
+        try
+            {
+            HideErrorMessage();
+            if (string.IsNullOrEmpty(DoB))
+                {
+                ErrorMessage = "Please type a valid date";
+                ButtonClass = "btn btn-danger";
+                ButtonCaption = CrossMark;
+                strAge = string.Empty;
+                return;
+                }
+            if (!IsOK(DoB))
+                {
+                ErrorMessage = "The date must be in the form D or DD MMM YYYY";
+                ButtonClass = "btn btn-danger";
+                ButtonCaption = CrossMark;
+                strAge = string.Empty;
+                return;
+                }
+            DateTime DateOfBirth = DateTime.Parse(DoB);
+            DateTime today = Globals.GetUKDateTime().Date;
+            if (DateOfBirth > today)
+                {
+                ErrorMessage = "Date of Birth cannot be in the future";
+                ButtonClass = "btn btn-danger";
+                ButtonCaption = CrossMark;
+                strAge = string.Empty;
+                return;
+                }
+            int ageNow = Globals.AgeInYears(DateOfBirth);
+            strAge = ageNow.ToString();
+            if (ageNow < 18)
+                {
+                ErrorMessage = "Underage: " + ageNow.ToString();
+                ButtonClass = "btn btn-danger";
+                ButtonCaption = CrossMark;
+                return;
+                }
+            if (ageNow > 60)
+                {
+                ErrorMessage = "Overage: " + ageNow.ToString();
+                ButtonClass = "btn btn-danger";
+                ButtonCaption = CrossMark;
+                return;
+                }
+            ButtonClass = "btn btn-success";
+            ButtonCaption = TickMark;
+            // If the person is born on 29th Feb they attain their age on the day after
+            if (DateTime.IsLeapYear(DateOfBirth.Year))
+                {
+                if (DateOfBirth.Month == 2 && DateOfBirth.Day == 29)
+                    {
+                    ErrorMessage = "Leap Year - attains age the next day.";
+                    ButtonClass = "btn btn-warning";
+                    ButtonCaption = "Test";
+                    }
+                }
+            }
+        catch (Exception ex)
+            {
+            ErrorMessage = "Dob-Test On-Click - Exception: " + ex.Message;
+            }
+        }
+
+    private static bool IsOK(string dobString)
+        {
+        // https://regexlib.com/DisplayPatterns.aspx?cattabindex=4&categoryId=5 Michael Ash
+        string pattern = @"^((31(?!\ (Feb(ruary)?|Apr(il)?|June?|(Sep(?=\b|t)t?|Nov)(ember)?)))|((30|29)(?!\ Feb(ruary)?))|(29(?=\ Feb(ruary)?\ (((1[6-9]|[2-9]\d)(0[48]|[2468][048]|[13579][26])|((16|[2468][048]|[3579][26])00)))))|(0?[1-9])|1\d|2[0-8])\ (Jan(uary)?|Feb(ruary)?|Ma(r(ch)?|y)|Apr(il)?|Ju((ly?)|(ne?))|Aug(ust)?|Oct(ober)?|(Sep(?=\b|t)t?|Nov|Dec)(ember)?)\ ((1[6-9]|[2-9]\d)\d{2})$";
+        return Regex.IsMatch(dobString, pattern);
+        }
+    private void DobOnKeyUp(KeyboardEventArgs e)
+        {
+        HideErrorMessage();
+        }
+
+    private void DobOnFocus(FocusEventArgs e)
+        {
+        HideErrorMessage();
+        }
+}
+
+
